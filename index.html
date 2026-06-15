@@ -25,7 +25,7 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-ap-dark to-black text-white min-h-screen flex flex-col font-sans">
-    <!-- TELA DE CADASTRO DO NOME DO CLIENTE -->
+    <!-- TELA DE CADASTRO DO NOME -->
     <div id="telaCadastro" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
         <div class="bg-ap-gray p-8 rounded-xl border-2 border-ap-orange/50 shadow-2xl text-center">
             <h2 class="text-2xl font-bold text-ap-orange mb-4">👤 SEU PERFIL</h2>
@@ -37,7 +37,7 @@
 
     <div class="bg-ap-orange text-black font-bold text-center py-2 flex justify-center items-center gap-4">
         <span id="meuNomeDisplay">👤 CARREGANDO...</span>
-        <span id="statusCliente" class="text-ap-red text-sm">BUSCANDO SISTEMA...</span>
+        <span id="statusCliente" class="text-ap-red text-sm">BUSCANDO SERVIDOR NO MUNDO...</span>
         <button onclick="limparMensagens()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded transition">🧹 Limpar</button>
     </div>
 
@@ -93,29 +93,25 @@
         const modos = ["1x1", "2x2", "3x3", "4x4"];
         const chat = document.getElementById('chatArea');
 
-        // Carrega nome salvo do navegador
         window.onload = () => {
             const nomeSalvo = localStorage.getItem('meuNomeUsuario');
             if(nomeSalvo) {
                 usuario.nome = nomeSalvo;
                 document.getElementById('telaCadastro').remove();
                 atualizarPerfil();
-                carregarHistorico();
                 conectar();
             }
         };
 
-        // Salva o nome digitado e entra no sistema
         function salvarNomeUsuario() {
             const nomeDigitado = document.getElementById('nomeUsuario').value.trim();
-            if(!nomeDigitado) return alert("Digite um nome válido!");
-            
+            if(!nomeDigitado) return alert("Digite um nome!");
             usuario.nome = nomeDigitado;
             localStorage.setItem('meuNomeUsuario', usuario.nome);
             document.getElementById('telaCadastro').remove();
             atualizarPerfil();
             conectar();
-            adicionarMensagemBot(`✅ Bem-vindo, ${usuario.nome}!\nEscolha um modo: 1x1, 2x2, 3x3 ou 4x4`);
+            adicionarMensagemSistema(`Olá ${usuario.nome}! Digite o modo de jogo (1x1, 2x2, 3x3, 4x4)`);
         }
 
         function atualizarPerfil() {
@@ -126,57 +122,28 @@
             document.getElementById('meuNomeDisplay').innerHTML = `👤 ${usuario.nome} ${badge}`;
         }
 
-        // Mensagens salvas
-        function carregarHistorico() {
-            const salvas = localStorage.getItem('mensagensChat');
-            if(salvas) chat.innerHTML = salvas;
-            else adicionarMensagemBot("🔌 Olá " + usuario.nome + "! Escolha um modo: 1x1, 2x2, 3x3 ou 4x4");
-        }
-        function limparMensagens() {
-            if(confirm("Apagar todo o histórico?")) {
-                chat.innerHTML = "";
-                localStorage.removeItem('mensagensChat');
-                adicionarMensagemBot("🧹 Histórico limpo!");
-            }
-        }
-        function salvarHistorico() {
-            localStorage.setItem('mensagensChat', chat.innerHTML);
-        }
-
-        // Enviar print
-        function previewEEnviar(e) {
-            const arquivo = e.target.files[0];
-            if(!arquivo) return;
-            document.getElementById('nomeArquivo').textContent = arquivo.name;
-            const leitor = new FileReader();
-            leitor.onload = (evt) => {
-                usuario.imagemPrint = evt.target.result;
-                document.getElementById('imgPreview').src = evt.target.result;
-                document.getElementById('previewImagem').classList.remove('hidden');
-            };
-            leitor.readAsDataURL(arquivo);
-        }
-        function enviarPrint() {
-            if(!usuario.conectado || !usuario.imagemPrint) return adicionarMensagemBot("❌ Aguarde conectar ou selecione imagem!");
-            conn.send({ tipo: "enviar_print", idUsuario: usuario.id, imagem: usuario.imagem });
-            usuario.print = true;
-            usuario.imagemPrint = null;
-            document.getElementById('previewImagem').classList.add('hidden');
-            document.getElementById('nomeArquivo').textContent = "✅ Enviado!";
-            adicionarMensagemBot("✅ Print enviado! Agora digite PG para entrar na fila.");
-        }
-
-        // Conexão
         function conectar() {
-            const peer = new Peer();
+            const peer = new Peer({
+                host: 'peerjs-server.herokuapp.com',
+                port: 443,
+                path: '/',
+                secure: true
+            });
             
             peer.on('open', () => {
-                conn = peer.connect(ID_ALVO, { reliable: true });
+                conn = peer.connect(ID_ALVO, { 
+                    reliable: true,
+                    host: 'peerjs-server.herokuapp.com',
+                    port: 443,
+                    path: '/',
+                    secure: true
+                });
 
                 conn.on('open', () => {
                     usuario.conectado = true;
-                    document.getElementById('statusCliente').className = 'text-ap-green';
-                    document.getElementById('statusCliente').textContent = "CONECTADO AO SISTEMA ✅";
+                    document.getElementById('statusCliente').className = 'text-ap-green text-sm';
+                    document.getElementById('statusCliente').textContent = "CONECTADO ✅";
+                    // Cadastra usuário no host
                     conn.send({ 
                         tipo: "cadastrar_usuario", 
                         idUnico: usuario.id, 
@@ -187,88 +154,122 @@
                 });
 
                 conn.on('data', (dados) => {
-                    if(dados.tipo === "atualizar_lista_usuarios") {
-                        const eu = dados.lista.find(u => u.id === usuario.id);
-                        if(eu) { usuario.cargo = eu.cargo; atualizarPerfil(); }
-                    }
-                    if(dados.tipo === "mensagem") adicionarMensagemBot(dados.texto);
-                    if(dados.tipo === "mensagem_adm") adicionarMensagemADM(dados.texto, dados.remetente, dados.cargo);
+                    processarResposta(dados);
                 });
 
                 conn.on('close', () => {
                     usuario.conectado = false;
-                    document.getElementById('statusCliente').className = 'text-ap-red';
-                    document.getElementById('statusCliente').textContent = "CAIU ❌ | RETORNANDO...";
+                    document.getElementById('statusCliente').className = 'text-ap-red text-sm';
+                    document.getElementById('statusCliente').textContent = "DESCONECTADO ❌ | RETORNANDO...";
                     setTimeout(conectar, 2500);
                 });
             });
 
             peer.on('error', () => setTimeout(conectar, 2500));
+
+            document.getElementById('btnEnviar').addEventListener('click', enviarComando);
+            document.getElementById('comandoInput').addEventListener('keypress', (e) => e.key === 'Enter' && enviarComando());
         }
 
-        // Comandos
-        document.getElementById('btnEnviar').addEventListener('click', enviarComando);
-        document.getElementById('comandoInput').addEventListener('keydown', e => e.key === 'Enter' && enviarComando());
+        function processarResposta(dados) {
+            if(dados.tipo === "mensagem") {
+                adicionarMensagemBot(dados.texto);
+            }
+            if(dados.tipo === "atualizar_tudo" && dados.listaUsuarios) {
+                const eu = dados.listaUsuarios.find(u => u.id === usuario.id);
+                if(eu && eu.cargo !== usuario.cargo) {
+                    usuario.cargo = eu.cargo;
+                    atualizarPerfil();
+                }
+            }
+        }
 
         function enviarComando() {
-            if(!usuario.conectado) return adicionarMensagemBot("❌ Aguarde conectar...");
-            const texto = document.getElementById('comandoInput').value.trim().toLowerCase();
-            if (!texto) return;
+            const texto = document.getElementById('comandoInput').value.trim();
+            if(!texto || !usuario.conectado) return;
+
             adicionarMensagemUsuario(texto);
             document.getElementById('comandoInput').value = "";
 
-            if (usuario.etapa === "inicio") {
-                if (modos.includes(texto)) { usuario.modo = texto; usuario.etapa = "valor"; adicionarMensagemBot(`Modo: ${texto}\nDigite valor (mín R$10)`); }
-                else adicionarMensagemBot("Escolha: 1x1, 2x2, 3x3 ou 4x4");
-            }
-            else if (usuario.etapa === "valor") { 
-                const val = parseInt(texto); 
-                if(isNaN(val)||val<10)return adicionarMensagemBot("Mínimo R$10!"); 
-                usuario.valor = val; usuario.etapa = "pix"; 
-                adicionarMensagemBot(`Valor: R$${val}\nDigite /pix`); 
-            }
-            else if (usuario.etapa === "pix") { 
-                if(texto==="/pix") { 
-                    adicionarMensagemBot(`💳 Pix: 123.456.789-00\nValor: R$${usuario.valor}\nNome: BOT AP\n⚠️ ENVIE O PRINT ABAIXO!`); 
-                    usuario.etapa = "aguardando_print"; 
-                } 
-            }
-            else if (usuario.etapa === "aguardando_print") { 
-                if((texto==="pg"||texto==="pago")) {
-                    if(!usuario.print) return adicionarMensagemBot("❌ ENVIE O PRINT PRIMEIRO!");
-                    usuario.etapa = "fila"; 
-                    conn.send({tipo:"entrar_fila",idUsuario:usuario.id,modo:usuario.modo,valor:usuario.valor,print:true}); 
-                    adicionarMensagemBot("✅ Entrou na fila! Aguardando partida..."); 
-                } 
+            if(usuario.etapa === "inicio") {
+                if(modos.includes(texto)) {
+                    usuario.modo = texto;
+                    usuario.etapa = "valor";
+                    adicionarMensagemSistema(`Modo ${texto} escolhido. Agora digite o valor da aposta:`);
+                } else {
+                    adicionarMensagemSistema("Modo inválido! Escolha: 1x1, 2x2, 3x3 ou 4x4");
+                }
+            } else if(usuario.etapa === "valor") {
+                const valor = parseFloat(texto.replace(',', '.'));
+                if(isNaN(valor) || valor <= 0) {
+                    adicionarMensagemSistema("Digite um valor válido maior que zero!");
+                    return;
+                }
+                usuario.valor = valor;
+                usuario.etapa = "aguardando";
+                // ENTRA NA FILA E ENVIA PRO HOST
+                conn.send({
+                    tipo: "entrar_fila",
+                    idUsuario: usuario.id,
+                    modo: usuario.modo,
+                    valor: usuario.valor
+                });
+                adicionarMensagemSistema(`Valor R$${valor.toFixed(2)} definido. Você entrou na fila! Aguardando par...`);
             }
         }
 
-        // Mensagens
-        function adicionarMensagemUsuario(txt) { 
-            const d=document.createElement('div');
-            d.className="user-message flex gap-2 justify-end";
-            d.innerHTML=`<div class="bg-gradient-to-r from-ap-orange to-ap-primary rounded-lg p-3 rounded-tr-none max-w-[85%] text-right">${txt}</div><div class="w-9 h-9 rounded-xl bg-gray-700 flex items-center justify-center mt-1"><i class="fa fa-user"></i></div>`;
-            chat.appendChild(d);
-            salvarHistorico();
+        function previewEEnviar(event) {
+            const arquivo = event.target.files[0];
+            if(!arquivo) return;
+            document.getElementById('nomeArquivo').textContent = arquivo.name;
+            const leitor = new FileReader();
+            leitor.onload = (e) => {
+                usuario.imagemPrint = e.target.result;
+                document.getElementById('imgPreview').src = usuario.imagemPrint;
+                document.getElementById('previewImagem').classList.remove('hidden');
+            };
+            leitor.readAsDataURL(arquivo);
+        }
+
+        function enviarPrint() {
+            if(!usuario.imagemPrint || !usuario.conectado) return;
+            conn.send({
+                tipo: "enviar_print",
+                idUsuario: usuario.id,
+                imagem: usuario.imagemPrint
+            });
+            adicionarMensagemUsuario("📸 Print enviado com sucesso!");
+            document.getElementById('previewImagem').classList.add('hidden');
+            document.getElementById('inputPrint').value = "";
+            usuario.imagemPrint = null;
+        }
+
+        function adicionarMensagemUsuario(texto) {
+            const div = document.createElement('div');
+            div.className = "user-message flex gap-2 justify-end";
+            div.innerHTML = `<div class="bg-gradient-to-r from-ap-orange to-ap-primary rounded-lg p-3 rounded-tr-none max-w-[85%] text-right">${texto}</div><div class="w-9 h-9 rounded-xl bg-orange-600 flex items-center justify-center mt-1"><i class="fa fa-user"></i></div>`;
+            chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
         }
-        function adicionarMensagemBot(txt) { 
-            const d=document.createElement('div');
-            d.className="bot-message flex gap-2";
-            d.innerHTML=`<div class="w-9 h-9 rounded-xl bg-gradient-to-r from-ap-primary to-ap-orange flex items-center justify-center mt-1 shadow"><i class="fa fa-robot"></i></div><div class="bg-black/60 rounded-lg p-3 rounded-tl-none max-w-[85%] border-l-2 border-ap-primary whitespace-pre-line">${txt}</div>`;
-            chat.appendChild(d);
-            salvarHistorico();
+
+        function adicionarMensagemBot(texto) {
+            const div = document.createElement('div');
+            div.className = "bot-message flex gap-2";
+            div.innerHTML = `<div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center mt-1"><i class="fa fa-robot"></i></div><div class="bg-black/60 rounded-lg p-3 rounded-tl-none max-w-[85%] border-l-2 border-ap-primary whitespace-pre-line">${texto}</div>`;
+            chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
         }
-        function adicionarMensagemADM(txt, remetente, cargo) { 
-            let badge = '';
-            if(cargo === 'adm') badge = '<span class="cargo-badge bg-red-500/20 text-red-400">🛡️ ADM</span>';
-            const d=document.createElement('div');
-            d.className="bot-message flex gap-2";
-            d.innerHTML=`<div class="w-9 h-9 rounded-xl bg-red-700 flex items-center justify-center mt-1 shadow"><i class="fa fa-shield"></i></div><div class="bg-black/60 rounded-lg p-3 rounded-tl-none max-w-[85%] border-l-2 border-ap-red"><b>${remetente} ${badge}</b><br>${txt}</div>`;
-            chat.appendChild(d);
-            salvarHistorico();
+
+        function adicionarMensagemSistema(texto) {
+            const div = document.createElement('div');
+            div.className = "text-ap-yellow text-sm text-center py-1";
+            div.textContent = texto;
+            chat.appendChild(div);
             chat.scrollTop = chat.scrollHeight;
+        }
+
+        function limparMensagens() {
+            chat.innerHTML = "";
         }
     </script>
 </body>
