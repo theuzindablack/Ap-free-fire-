@@ -25,7 +25,6 @@
     </style>
 </head>
 <body class="bg-gradient-to-br from-ap-dark to-black text-white min-h-screen flex flex-col font-sans">
-    <!-- TELA DE CADASTRO DO NOME -->
     <div id="telaCadastro" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
         <div class="bg-ap-gray p-8 rounded-xl border-2 border-ap-orange/50 shadow-2xl text-center">
             <h2 class="text-2xl font-bold text-ap-orange mb-4">👤 SEU PERFIL</h2>
@@ -37,7 +36,7 @@
 
     <div class="bg-ap-orange text-black font-bold text-center py-2 flex justify-center items-center gap-4">
         <span id="meuNomeDisplay">👤 CARREGANDO...</span>
-        <span id="statusCliente" class="text-ap-red text-sm">BUSCANDO SERVIDOR NO MUNDO...</span>
+        <span id="statusCliente" class="text-ap-red text-sm">BUSCANDO SERVIDOR...</span>
         <button onclick="limparMensagens()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded transition">🧹 Limpar</button>
     </div>
 
@@ -57,7 +56,6 @@
             <div id="cabecalhoChat" class="p-3 border-b border-gray-700 bg-gradient-to-r from-ap-primary/10 to-transparent font-semibold">💬 Conversa</div>
             <div id="chatArea" class="p-4 h-[500px] overflow-y-auto space-y-3 bg-[url('https://www.transparenttextures.com/patterns/dark-mosaic.png')]"></div>
 
-            <!-- ÁREA DE ENVIO DE PRINT -->
             <div class="bg-black/50 p-3 border-t border-b border-gray-700">
                 <label class="block text-sm font-semibold mb-2 text-ap-orange">📸 ENVIAR PRINT DO PAGAMENTO:</label>
                 <input type="file" id="inputPrint" accept="image/*" class="hidden" onchange="previewEEnviar(event)">
@@ -124,7 +122,7 @@
 
         function conectar() {
             const peer = new Peer({
-                host: 'peerjs-server.herokuapp.com',
+                host: '0.peerjs.com',
                 port: 443,
                 path: '/',
                 secure: true
@@ -133,7 +131,7 @@
             peer.on('open', () => {
                 conn = peer.connect(ID_ALVO, { 
                     reliable: true,
-                    host: 'peerjs-server.herokuapp.com',
+                    host: '0.peerjs.com',
                     port: 443,
                     path: '/',
                     secure: true
@@ -143,7 +141,6 @@
                     usuario.conectado = true;
                     document.getElementById('statusCliente').className = 'text-ap-green text-sm';
                     document.getElementById('statusCliente').textContent = "CONECTADO ✅";
-                    // Cadastra usuário no host
                     conn.send({ 
                         tipo: "cadastrar_usuario", 
                         idUnico: usuario.id, 
@@ -207,7 +204,6 @@
                 }
                 usuario.valor = valor;
                 usuario.etapa = "aguardando";
-                // ENTRA NA FILA E ENVIA PRO HOST
                 conn.send({
                     tipo: "entrar_fila",
                     idUsuario: usuario.id,
