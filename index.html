@@ -12,261 +12,199 @@
             theme: {
                 extend: {
                     colors: {
-                        ap: { primary: '#165DFF', dark: '#0A0E27', gray: '#1A1F38', orange: '#FF7D00', green: '#2ECC71', red: '#e74c3c', vip: '#9333EA', verificado: '#06B6D4', apostador: '#F97316' }
+                        ap: { primary: '#165DFF', dark: '#0A0E27', gray: '#1A1F38', orange: '#FF7D00', green: '#2ECC71', red: '#e74c3c', yellow: '#FACC15', vip: '#9333EA', verificado: '#06B6D4', apostador: '#F97316' }
                     }
                 }
             }
         }
     </script>
     <style>
-        .bot-message, .user-message { animation: fadeIn 0.3s ease; }
+        .mensagem-adm, .mensagem-cliente { animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .cargo-badge { font-size: 10px; padding: 2px 6px; border-radius: 10px; font-weight: bold; }
     </style>
 </head>
-<body class="bg-gradient-to-br from-ap-dark to-black text-white min-h-screen flex flex-col font-sans">
+<body class="bg-gradient-to-br from-ap-dark to-black text-white min-h-screen p-4">
     <div id="telaCadastro" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
         <div class="bg-ap-gray p-8 rounded-xl border-2 border-ap-orange/50 shadow-2xl text-center">
-            <h2 class="text-2xl font-bold text-ap-orange mb-4">👤 SEU PERFIL</h2>
-            <p class="text-gray-300 mb-4">Escolha seu nome permanente:</p>
-            <input type="text" id="nomeUsuario" placeholder="Ex: Joãozinho, Marquinho..." class="w-full bg-black/60 border border-ap-orange/30 rounded px-4 py-3 mb-4 text-center text-lg" required>
-            <button onclick="salvarNomeUsuario()" class="w-full bg-ap-orange hover:bg-ap-orange/80 text-white font-bold py-3 rounded-lg text-lg">💾 SALVAR E ENTRAR</button>
+            <h2 class="text-2xl font-bold text-ap-orange mb-4">👤 PERFIL DO CLIENTE</h2>
+            <p class="text-gray-300 mb-4">Digite seu nome para entrar:</p>
+            <input type="text" id="nomeCliente" placeholder="Ex: Joãozinho" class="w-full bg-black/60 border border-ap-orange/30 rounded px-4 py-3 mb-4 text-center">
+            <button onclick="salvarNomeCliente()" class="w-full bg-ap-orange hover:bg-ap-orange/80 text-white font-bold py-3 rounded-lg text-lg">💾 ENTRAR</button>
         </div>
     </div>
 
-    <div class="bg-ap-orange text-black font-bold text-center py-2 flex justify-center items-center gap-4">
-        <span id="meuNomeDisplay">👤 CARREGANDO...</span>
-        <span id="statusCliente" class="text-ap-red text-sm">BUSCANDO SERVIDOR...</span>
-        <button onclick="limparMensagens()" class="bg-red-600 hover:bg-red-700 text-white text-xs px-2 py-1 rounded transition">🧹 Limpar</button>
+    <div class="bg-ap-orange text-white font-bold text-center py-3 mb-6 rounded-lg shadow-lg">
+        🎟️ ÁREA DO CLIENTE | ALVO: <span class="text-yellow-300">SISTEMA_AP_001</span>  
+        STATUS: <span id="statusConexao" class="text-ap-red">BUSCANDO SERVIDOR...</span>
     </div>
 
-    <header class="bg-ap-gray/80 backdrop-blur-md p-4 border-b border-ap-primary/30">
-        <div class="container mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-11 h-11 rounded-xl bg-gradient-to-r from-ap-primary to-ap-orange flex items-center justify-center shadow-lg">
-                    <i class="fa fa-fire text-xl text-ap-red"></i>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-1 space-y-6">
+            <div class="bg-ap-gray rounded-xl border border-ap-primary/20 p-4 shadow-xl">
+                <h2 class="text-xl font-bold text-ap-yellow mb-4">🎮 INFORMAÇÕES DA APOSTA</h2>
+                
+                <div class="mb-3">
+                    <label class="text-sm text-gray-400">Modo de Jogo:</label>
+                    <select id="modoJogo" class="w-full bg-black/60 border border-ap-primary/30 rounded px-3 py-2 mt-1">
+                        <option value="">Selecione</option>
+                        <option value="1x1">1x1</option>
+                        <option value="2x2">2x2</option>
+                        <option value="3x3">3x3</option>
+                        <option value="4x4">4x4</option>
+                    </select>
                 </div>
-                <div><h1 class="font-black text-xl tracking-wider text-white">BOT <span class="text-ap-orange">AP</span></h1></div>
+
+                <div class="mb-4">
+                    <label class="text-sm text-gray-400">Valor da Aposta R$:</label>
+                    <input type="number" id="valorAposta" placeholder="0,00" class="w-full bg-black/60 border border-ap-primary/30 rounded px-3 py-2 mt-1">
+                </div>
+
+                <button onclick="definirAposta()" class="w-full bg-ap-primary px-4 py-2 rounded font-bold hover:bg-ap-primary/80 mb-4">✅ CONFIRMAR APOSTA</button>
+
+                <div id="statusEtapa" class="text-center text-sm text-gray-400 mt-2">Aguardando preenchimento...</div>
+            </div>
+
+            <div class="bg-ap-gray rounded-xl border border-ap-primary/20 p-4 shadow-xl">
+                <h2 class="text-xl font-bold text-ap-green mb-4">📤 ENVIAR COMPROVANTE</h2>
+                <input type="file" id="inputImagem" accept="image/*" class="w-full text-sm mb-3">
+                <button onclick="enviarComprovante()" class="w-full bg-ap-green px-4 py-2 rounded font-bold hover:bg-ap-green/80">📤 ENVIAR PRINT</button>
+            </div>
+
+            <div id="codigoSalaInfo" class="hidden bg-ap-gray rounded-xl border border-ap-vip/50 p-4 shadow-xl">
+                <h2 class="text-xl font-bold text-ap-vip mb-2">🔐 DADOS DA SALA</h2>
+                <p class="text-sm mb-1">Código: <span id="codigoRecebido" class="font-bold text-ap-green"></span></p>
+                <p class="text-sm">Senha: <span id="senhaRecebida" class="font-bold text-ap-green"></span></p>
             </div>
         </div>
-    </header>
 
-    <main class="flex-1 container mx-auto p-4">
-        <div class="bg-ap-gray rounded-xl border border-ap-primary/20 overflow-hidden shadow-2xl">
-            <div id="cabecalhoChat" class="p-3 border-b border-gray-700 bg-gradient-to-r from-ap-primary/10 to-transparent font-semibold">💬 Conversa</div>
-            <div id="chatArea" class="p-4 h-[500px] overflow-y-auto space-y-3 bg-[url('https://www.transparenttextures.com/patterns/dark-mosaic.png')]"></div>
-
-            <div class="bg-black/50 p-3 border-t border-b border-gray-700">
-                <label class="block text-sm font-semibold mb-2 text-ap-orange">📸 ENVIAR PRINT DO PAGAMENTO:</label>
-                <input type="file" id="inputPrint" accept="image/*" class="hidden" onchange="previewEEnviar(event)">
-                <label for="inputPrint" class="bg-ap-orange/20 border border-ap-orange/50 text-ap-orange px-3 py-2 rounded-lg cursor-pointer hover:bg-ap-orange/30 transition text-sm">📎 Escolher Imagem</label>
-                <span id="nomeArquivo" class="text-xs text-gray-400 ml-2">Nenhuma imagem selecionada</span>
-                <div id="previewImagem" class="mt-2 hidden">
-                    <img id="imgPreview" src="" class="max-w-[200px] h-auto rounded border border-gray-700">
-                    <button onclick="enviarPrint()" class="mt-2 bg-ap-green px-3 py-1 rounded text-sm hover:bg-ap-green/80">✅ ENVIAR PRINT</button>
-                </div>
+        <div class="lg:col-span-2 bg-ap-gray rounded-xl border border-ap-primary/20 overflow-hidden shadow-xl">
+            <div class="p-3 border-b border-gray-700 bg-gradient-to-r from-ap-primary/10 to-transparent font-semibold">
+                💬 CONVERSA COM ADMINISTRADOR
             </div>
-
+            <div id="chatCliente" class="p-4 h-[450px] overflow-y-auto space-y-3 bg-[url('https://www.transparenttextures.com/patterns/dark-mosaic.png')] text-gray-400 text-center">
+                📜 Suas mensagens e respostas aparecerão aqui
+            </div>
             <div class="p-3 border-t border-gray-700 flex gap-2 bg-black/40">
-                <input type="text" id="comandoInput" placeholder="Digite aqui..." class="flex-1 bg-black/70 border border-ap-primary/40 rounded-lg px-4 py-3 focus:outline-none focus:border-ap-orange transition">
-                <button id="btnEnviar" class="bg-gradient-to-r from-ap-primary to-ap-orange px-4 py-3 rounded-lg font-bold hover:from-ap-orange hover:to-ap-primary transition shadow-lg"><i class="fa fa-paper-plane"></i> ENVIAR</button>
+                <input type="text" id="mensagemClienteInput" placeholder="Digite sua mensagem..." class="flex-1 bg-black/70 border border-ap-primary/40 rounded-lg px-4 py-3">
+                <button id="btnEnviarMsgCliente" class="bg-gradient-to-r from-ap-primary to-ap-orange px-4 py-3 rounded-lg font-bold"><i class="fa fa-paper-plane"></i> ENVIAR</button>
             </div>
         </div>
-    </main>
+    </div>
 
     <script>
         const ID_ALVO = "SISTEMA_AP_001";
         let conn;
-        let usuario = { 
-            conectado: false, 
-            id: Math.random().toString(36).substr(2, 10), 
-            nome: "", 
-            cargo: "nenhum",
-            etapa: "inicio", 
-            modo:"", 
-            valor:0, 
-            print:false, 
-            imagemPrint:null 
-        };
-        const modos = ["1x1", "2x2", "3x3", "4x4"];
-        const chat = document.getElementById('chatArea');
+        let meuNome = "";
+        let meuId = Math.random().toString(36).substr(2, 10);
+        let imagemComprovante = "";
 
-        window.onload = () => {
-            const nomeSalvo = localStorage.getItem('meuNomeUsuario');
-            if(nomeSalvo) {
-                usuario.nome = nomeSalvo;
-                document.getElementById('telaCadastro').remove();
-                atualizarPerfil();
-                conectar();
-            }
-        };
+        const chatCliente = document.getElementById('chatCliente');
 
-        function salvarNomeUsuario() {
-            const nomeDigitado = document.getElementById('nomeUsuario').value.trim();
-            if(!nomeDigitado) return alert("Digite um nome!");
-            usuario.nome = nomeDigitado;
-            localStorage.setItem('meuNomeUsuario', usuario.nome);
+        function salvarNomeCliente() {
+            meuNome = document.getElementById('nomeCliente').value.trim() || "Cliente_" + meuId.substr(0,4);
+            localStorage.setItem('meuNomeCliente', meuNome);
             document.getElementById('telaCadastro').remove();
-            atualizarPerfil();
             conectar();
-            adicionarMensagemSistema(`Olá ${usuario.nome}! Digite o modo de jogo (1x1, 2x2, 3x3, 4x4)`);
         }
-
-        function atualizarPerfil() {
-            let badge = '';
-            if(usuario.cargo === 'verificado') badge = '<span class="cargo-badge bg-verificado/20 text-verificado">✅ Verificado</span>';
-            if(usuario.cargo === 'vip') badge = '<span class="cargo-badge bg-vip/20 text-vip">💎 VIP</span>';
-            if(usuario.cargo === 'apostador') badge = '<span class="cargo-badge bg-apostador/20 text-apostador">🔥 Apostador</span>';
-            document.getElementById('meuNomeDisplay').innerHTML = `👤 ${usuario.nome} ${badge}`;
-        }
+        window.onload = () => { const salvo = localStorage.getItem('meuNomeCliente'); if(salvo) { meuNome=salvo; document.getElementById('telaCadastro').remove(); conectar(); } };
 
         function conectar() {
-            const peer = new Peer({
-                host: '0.peerjs.com',
-                port: 443,
-                path: '/',
-                secure: true
-            });
-            
+            const peer = new Peer({host:'0.peerjs.com',port:443,path:'/',secure:true});
             peer.on('open', () => {
-                conn = peer.connect(ID_ALVO, { 
-                    reliable: true,
-                    host: '0.peerjs.com',
-                    port: 443,
-                    path: '/',
-                    secure: true
-                });
-
+                conn = peer.connect(ID_ALVO, {reliable:true,host:'0.peerjs.com',port:443,path:'/',secure:true});
+                
                 conn.on('open', () => {
-                    usuario.conectado = true;
-                    document.getElementById('statusCliente').className = 'text-ap-green text-sm';
-                    document.getElementById('statusCliente').textContent = "CONECTADO ✅";
-                    conn.send({ 
-                        tipo: "cadastrar_usuario", 
-                        idUnico: usuario.id, 
-                        nomeEscolhido: usuario.nome, 
-                        cargo: usuario.cargo, 
-                        tipoUsuario: "cliente" 
-                    });
+                    document.getElementById('statusConexao').className = 'text-ap-green';
+                    document.getElementById('statusConexao').textContent = "CONECTADO ✅";
+                    // AVISA QUEM EU SOU
+                    conn.send({tipo:"cadastrar_usuario",idUnico:meuId,nomeEscolhido:meuNome,cargo:"nenhum",tipoUsuario:"cliente"});
                 });
 
+                // RECEBE MENSAGENS E AVISOS DO ADM
                 conn.on('data', (dados) => {
-                    processarResposta(dados);
+                    if(dados.tipo === "mensagem") {
+                        adicionarMensagemAdmNaTela(dados.texto);
+                    }
+                    if(dados.tipo === "pagamento_aprovado") {
+                        adicionarMensagemSistema("✅ Pagamento APROVADO! Aguarde os dados da sala.");
+                        document.getElementById('statusEtapa').textContent = "Pagamento aprovado ✅";
+                        document.getElementById('statusEtapa').className = "text-center text-sm text-ap-green font-bold mt-2";
+                    }
+                    if(dados.tipo === "pagamento_recusado") {
+                        adicionarMensagemSistema("❌ Pagamento RECUSADO! Verifique o comprovante e envie novamente.");
+                        document.getElementById('statusEtapa').textContent = "Pagamento recusado ❌";
+                        document.getElementById('statusEtapa').className = "text-center text-sm text-ap-red font-bold mt-2";
+                    }
+                    if(dados.tipo === "receber_codigo") {
+                        adicionarMensagemSistema(`🔐 Sala liberada! Código: ${dados.codigo} | Senha: ${dados.senha}`);
+                        document.getElementById('codigoRecebido').textContent = dados.codigo;
+                        document.getElementById('senhaRecebida').textContent = dados.senha;
+                        document.getElementById('codigoSalaInfo').classList.remove('hidden');
+                    }
                 });
 
                 conn.on('close', () => {
-                    usuario.conectado = false;
-                    document.getElementById('statusCliente').className = 'text-ap-red text-sm';
-                    document.getElementById('statusCliente').textContent = "DESCONECTADO ❌ | RETORNANDO...";
+                    document.getElementById('statusConexao').textContent = "DESCONECTADO ❌ | RETORNANDO...";
                     setTimeout(conectar, 2500);
                 });
             });
-
-            peer.on('error', () => setTimeout(conectar, 2500));
-
-            document.getElementById('btnEnviar').addEventListener('click', enviarComando);
-            document.getElementById('comandoInput').addEventListener('keypress', (e) => e.key === 'Enter' && enviarComando());
+            peer.on('error', () => setTimeout(conectar,2500));
         }
 
-        function processarResposta(dados) {
-            if(dados.tipo === "mensagem") {
-                adicionarMensagemBot(dados.texto);
-            }
-            if(dados.tipo === "atualizar_tudo" && dados.listaUsuarios) {
-                const eu = dados.listaUsuarios.find(u => u.id === usuario.id);
-                if(eu && eu.cargo !== usuario.cargo) {
-                    usuario.cargo = eu.cargo;
-                    atualizarPerfil();
-                }
-            }
+        function definirAposta() {
+            const modo = document.getElementById('modoJogo').value;
+            const valor = document.getElementById('valorAposta').value;
+            if(!modo || !valor) return alert("Preencha modo e valor!");
+            
+            conn.send({tipo:"definir_aposta",idUsuario:meuId, modo:modo, valor:valor});
+            adicionarMensagemSistema(`📋 Aposta definida: ${modo} | R$ ${valor}`);
+            document.getElementById('statusEtapa').textContent = "Aposta salva! Envie o comprovante 📸";
+            document.getElementById('statusEtapa').className = "text-center text-sm text-ap-yellow font-bold mt-2";
         }
 
-        function enviarComando() {
-            const texto = document.getElementById('comandoInput').value.trim();
-            if(!texto || !usuario.conectado) return;
-
-            adicionarMensagemUsuario(texto);
-            document.getElementById('comandoInput').value = "";
-
-            if(usuario.etapa === "inicio") {
-                if(modos.includes(texto)) {
-                    usuario.modo = texto;
-                    usuario.etapa = "valor";
-                    adicionarMensagemSistema(`Modo ${texto} escolhido. Agora digite o valor da aposta:`);
-                } else {
-                    adicionarMensagemSistema("Modo inválido! Escolha: 1x1, 2x2, 3x3 ou 4x4");
-                }
-            } else if(usuario.etapa === "valor") {
-                const valor = parseFloat(texto.replace(',', '.'));
-                if(isNaN(valor) || valor <= 0) {
-                    adicionarMensagemSistema("Digite um valor válido maior que zero!");
-                    return;
-                }
-                usuario.valor = valor;
-                usuario.etapa = "aguardando";
-                conn.send({
-                    tipo: "entrar_fila",
-                    idUsuario: usuario.id,
-                    modo: usuario.modo,
-                    valor: usuario.valor
-                });
-                adicionarMensagemSistema(`Valor R$${valor.toFixed(2)} definido. Você entrou na fila! Aguardando par...`);
-            }
-        }
-
-        function previewEEnviar(event) {
-            const arquivo = event.target.files[0];
-            if(!arquivo) return;
-            document.getElementById('nomeArquivo').textContent = arquivo.name;
-            const leitor = new FileReader();
-            leitor.onload = (e) => {
-                usuario.imagemPrint = e.target.result;
-                document.getElementById('imgPreview').src = usuario.imagemPrint;
-                document.getElementById('previewImagem').classList.remove('hidden');
+        function enviarComprovante() {
+            const input = document.getElementById('inputImagem');
+            if(!input.files[0]) return alert("Selecione uma imagem!");
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagemComprovante = e.target.result;
+                conn.send({tipo:"enviar_print",idUsuario:meuId, imagem:imagemComprovante});
+                adicionarMensagemSistema("📸 Comprovante enviado para análise!");
+                document.getElementById('statusEtapa').textContent = "Comprovante em análise 🔍";
+                document.getElementById('statusEtapa').className = "text-center text-sm text-ap-orange font-bold mt-2";
             };
-            leitor.readAsDataURL(arquivo);
+            reader.readAsDataURL(input.files[0]);
         }
 
-        function enviarPrint() {
-            if(!usuario.imagemPrint || !usuario.conectado) return;
-            conn.send({
-                tipo: "enviar_print",
-                idUsuario: usuario.id,
-                imagem: usuario.imagemPrint
-            });
-            adicionarMensagemUsuario("📸 Print enviado com sucesso!");
-            document.getElementById('previewImagem').classList.add('hidden');
-            document.getElementById('inputPrint').value = "";
-            usuario.imagemPrint = null;
+        // FUNÇÕES DE INTERFACE
+        function adicionarMensagemClienteNaTela(texto) {
+            chatCliente.innerHTML += `<div class="mensagem-cliente flex gap-2 justify-end">
+                <div class="bg-gradient-to-r from-ap-orange to-ap-primary rounded-lg p-3 rounded-tr-none max-w-[85%] text-right"><b>Você</b><br>${texto}</div>
+                <div class="w-9 h-9 rounded-xl bg-ap-orange flex items-center justify-center mt-1"><i class="fa fa-user"></i></div>
+            </div>`;
+            chatCliente.scrollTop = chatCliente.scrollHeight;
         }
-
-        function adicionarMensagemUsuario(texto) {
-            const div = document.createElement('div');
-            div.className = "user-message flex gap-2 justify-end";
-            div.innerHTML = `<div class="bg-gradient-to-r from-ap-orange to-ap-primary rounded-lg p-3 rounded-tr-none max-w-[85%] text-right">${texto}</div><div class="w-9 h-9 rounded-xl bg-orange-600 flex items-center justify-center mt-1"><i class="fa fa-user"></i></div>`;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
+        function adicionarMensagemAdmNaTela(texto) {
+            chatCliente.innerHTML += `<div class="mensagem-adm flex gap-2">
+                <div class="w-9 h-9 rounded-xl bg-gray-700 flex items-center justify-center mt-1"><i class="fa fa-shield"></i></div>
+                <div class="bg-black/60 rounded-lg p-3 rounded-tl-none max-w-[85%] border-l-2 border-ap-red"><b>Administrador</b><br>${texto}</div>
+            </div>`;
+            chatCliente.scrollTop = chatCliente.scrollHeight;
         }
-
-        function adicionarMensagemBot(texto) {
-            const div = document.createElement('div');
-            div.className = "bot-message flex gap-2";
-            div.innerHTML = `<div class="w-9 h-9 rounded-xl bg-blue-600 flex items-center justify-center mt-1"><i class="fa fa-robot"></i></div><div class="bg-black/60 rounded-lg p-3 rounded-tl-none max-w-[85%] border-l-2 border-ap-primary whitespace-pre-line">${texto}</div>`;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-        }
-
         function adicionarMensagemSistema(texto) {
-            const div = document.createElement('div');
-            div.className = "text-ap-yellow text-sm text-center py-1";
-            div.textContent = texto;
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
+            chatCliente.innerHTML += `<div class="text-center text-ap-yellow text-sm py-1">⚡ ${texto}</div>`;
+            chatCliente.scrollTop = chatCliente.scrollHeight;
         }
 
-        function limparMensagens() {
-            chat.innerHTML = "";
-        }
+        // ENVIAR MENSAGEM
+        document.getElementById('btnEnviarMsgCliente').addEventListener('click', () => {
+            const txt = document.getElementById('mensagemClienteInput').value.trim();
+            if(!txt) return;
+            conn.send({tipo:"enviar_mensagem",idUsuario:meuId, texto:txt});
+            adicionarMensagemClienteNaTela(txt);
+            document.getElementById('mensagemClienteInput').value = "";
+        });
     </script>
 </body>
 </html>
