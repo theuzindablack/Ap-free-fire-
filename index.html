@@ -3,90 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLIENTE | CONECTA EM: SISTEMA_AP_001</title>
+    <title>CLIENTE | CONEXÃO GLOBAL</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        ap: { primary: '#165DFF', dark: '#0A0E27', gray: '#1A1F38', orange: '#FF7D00', green: '#2ECC71', red: '#e74c3c', yellow: '#FACC15', vip: '#9333EA', verificado: '#06B6D4', apostador: '#F97316' }
-                    }
-                }
-            }
-        }
+        tailwind.config = { theme: { extend: { colors: { ap: { primary: '#165DFF', dark: '#0A0E27', gray: '#1A1F38', orange: '#FF7D00', green: '#2ECC71', red: '#e74c3c', yellow: '#FACC15' } } } } }
     </script>
-    <style>
-        .mensagem-adm, .mensagem-cliente { animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    </style>
 </head>
 <body class="bg-gradient-to-br from-ap-dark to-black text-white min-h-screen p-4">
-    <div id="telaCadastro" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
-        <div class="bg-ap-gray p-8 rounded-xl border-2 border-ap-orange/50 shadow-2xl text-center">
-            <h2 class="text-2xl font-bold text-ap-orange mb-4">👤 PERFIL DO CLIENTE</h2>
-            <p class="text-gray-300 mb-4">Digite seu nome para entrar:</p>
-            <input type="text" id="nomeCliente" placeholder="Ex: Joãozinho" class="w-full bg-black/60 border border-ap-orange/30 rounded px-4 py-3 mb-4 text-center">
-            <button onclick="salvarNomeCliente()" class="w-full bg-ap-orange hover:bg-ap-orange/80 text-white font-bold py-3 rounded-lg text-lg">💾 ENTRAR</button>
+    <div id="telaNome" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center">
+        <div class="bg-ap-gray p-8 rounded-xl border-2 border-ap-orange/50 text-center">
+            <h2 class="text-2xl font-bold text-ap-orange mb-4">👤 SEU NOME</h2>
+            <input type="text" id="nomeCli" class="w-full bg-black/60 border border-ap-orange/30 rounded px-4 py-3 mb-4 text-center" value="Jogador_">
+            <button onclick="entrar()" class="w-full bg-ap-orange py-3 rounded-lg font-bold">ENTRAR</button>
         </div>
     </div>
 
     <div class="bg-ap-orange text-white font-bold text-center py-3 mb-6 rounded-lg shadow-lg">
-        🎟️ ÁREA DO CLIENTE | ALVO: <span class="text-yellow-300">SISTEMA_AP_001</span>  
-        STATUS: <span id="statusConexao" class="text-ap-red">BUSCANDO SERVIDOR...</span>
+        🎟️ ÁREA DO CLIENTE
+        <br><span id="statusConn" class="text-yellow-300">🔄 CONECTANDO AO SERVIDOR...</span>
     </div>
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div class="lg:col-span-1 space-y-6">
+        <div class="space-y-6">
             <div class="bg-ap-gray rounded-xl border border-ap-primary/20 p-4 shadow-xl">
-                <h2 class="text-xl font-bold text-ap-yellow mb-4">🎮 INFORMAÇÕES DA APOSTA</h2>
-                
-                <div class="mb-3">
-                    <label class="text-sm text-gray-400">Modo de Jogo:</label>
-                    <select id="modoJogo" class="w-full bg-black/60 border border-ap-primary/30 rounded px-3 py-2 mt-1">
-                        <option value="">Selecione</option>
-                        <option value="1x1">1x1</option>
-                        <option value="2x2">2x2</option>
-                        <option value="3x3">3x3</option>
-                        <option value="4x4">4x4</option>
-                    </select>
+                <h2 class="text-xl font-bold text-ap-yellow mb-4">🎮 APOSTA</h2>
+                <select id="modo" class="w-full bg-black/60 border border-ap-primary/30 rounded px-3 py-2 mb-2">
+                    <option>1x1</option><option>2x2</option><option>3x3</option><option>4x4</option>
+                </select>
+                <input type="number" id="valor" placeholder="R$ Valor" class="w-full bg-black/60 border border-ap-primary/30 rounded px-3 py-2 mb-3">
+                <button onclick="confirmarAposta()" class="w-full bg-ap-primary py-2 rounded font-bold mb-3">CONFIRMAR</button>
+
+                <input type="file" id="imgInput" accept="image/*" class="w-full text-sm mb-2">
+                <button onclick="enviarPrint()" class="w-full bg-ap-green py-2 rounded font-bold">ENVIAR COMPROVANTE</button>
+
+                <div id="dadosSala" class="hidden mt-4 p-3 bg-ap-vip/20 rounded border border-ap-vip">
+                    <h3 class="font-bold text-ap-vip">🔐 SUA SALA</h3>
+                    <p>Código: <span id="codRecebido"></span></p>
+                    <p>Senha: <span id="senRecebida"></span></p>
                 </div>
-
-                <div class="mb-4">
-                    <label class="text-sm text-gray-400">Valor da Aposta R$:</label>
-                    <input type="number" id="valorAposta" placeholder="0,00" class="w-full bg-black/60 border border-ap-primary/30 rounded px-3 py-2 mt-1">
-                </div>
-
-                <button onclick="definirAposta()" class="w-full bg-ap-primary px-4 py-2 rounded font-bold hover:bg-ap-primary/80 mb-4">✅ CONFIRMAR APOSTA</button>
-
-                <div id="statusEtapa" class="text-center text-sm text-gray-400 mt-2">Aguardando preenchimento...</div>
-            </div>
-
-            <div class="bg-ap-gray rounded-xl border border-ap-primary/20 p-4 shadow-xl">
-                <h2 class="text-xl font-bold text-ap-green mb-4">📤 ENVIAR COMPROVANTE</h2>
-                <input type="file" id="inputImagem" accept="image/*" class="w-full text-sm mb-3">
-                <button onclick="enviarComprovante()" class="w-full bg-ap-green px-4 py-2 rounded font-bold hover:bg-ap-green/80">📤 ENVIAR PRINT</button>
-            </div>
-
-            <div id="codigoSalaInfo" class="hidden bg-ap-gray rounded-xl border border-ap-vip/50 p-4 shadow-xl">
-                <h2 class="text-xl font-bold text-ap-vip mb-2">🔐 DADOS DA SALA</h2>
-                <p class="text-sm mb-1">Código: <span id="codigoRecebido" class="font-bold text-ap-green"></span></p>
-                <p class="text-sm">Senha: <span id="senhaRecebida" class="font-bold text-ap-green"></span></p>
             </div>
         </div>
 
         <div class="lg:col-span-2 bg-ap-gray rounded-xl border border-ap-primary/20 overflow-hidden shadow-xl">
-            <div class="p-3 border-b border-gray-700 bg-gradient-to-r from-ap-primary/10 to-transparent font-semibold">
-                💬 CONVERSA COM ADMINISTRADOR
-            </div>
-            <div id="chatCliente" class="p-4 h-[450px] overflow-y-auto space-y-3 bg-[url('https://www.transparenttextures.com/patterns/dark-mosaic.png')] text-gray-400 text-center">
-                📜 Suas mensagens e respostas aparecerão aqui
-            </div>
-            <div class="p-3 border-t border-gray-700 flex gap-2 bg-black/40">
-                <input type="text" id="mensagemClienteInput" placeholder="Digite sua mensagem..." class="flex-1 bg-black/70 border border-ap-primary/40 rounded-lg px-4 py-3">
-                <button id="btnEnviarMsgCliente" class="bg-gradient-to-r from-ap-primary to-ap-orange px-4 py-3 rounded-lg font-bold"><i class="fa fa-paper-plane"></i> ENVIAR</button>
+            <div class="p-3 border-b border-gray-700 font-semibold">💬 FALE COM O ADM</div>
+            <div id="chat" class="p-4 h-[450px] overflow-y-auto space-y-2 bg-black/40"></div>
+            <div class="p-3 border-t border-gray-700 flex gap-2">
+                <input type="text" id="msgInput" placeholder="Sua mensagem..." class="flex-1 bg-black/70 border border-ap-primary/40 rounded-lg px-4 py-3">
+                <button onclick="enviarMsg()" class="bg-ap-orange px-4 py-3 rounded-lg font-bold">ENVIAR</button>
             </div>
         </div>
     </div>
@@ -95,116 +60,100 @@
         const ID_ALVO = "SISTEMA_AP_001";
         let conn;
         let meuNome = "";
-        let meuId = Math.random().toString(36).substr(2, 10);
-        let imagemComprovante = "";
+        let meuId = Math.random().toString(36).substr(2,8);
 
-        const chatCliente = document.getElementById('chatCliente');
-
-        function salvarNomeCliente() {
-            meuNome = document.getElementById('nomeCliente').value.trim() || "Cliente_" + meuId.substr(0,4);
-            localStorage.setItem('meuNomeCliente', meuNome);
-            document.getElementById('telaCadastro').remove();
-            conectar();
+        function entrar() {
+            meuNome = document.getElementById('nomeCli').value || "Jogador";
+            document.getElementById('telaNome').remove();
+            conectarGlobal();
         }
-        window.onload = () => { const salvo = localStorage.getItem('meuNomeCliente'); if(salvo) { meuNome=salvo; document.getElementById('telaCadastro').remove(); conectar(); } };
 
-        function conectar() {
-            const peer = new Peer({host:'0.peerjs.com',port:443,path:'/',secure:true});
-            peer.on('open', () => {
-                conn = peer.connect(ID_ALVO, {reliable:true,host:'0.peerjs.com',port:443,path:'/',secure:true});
-                
-                conn.on('open', () => {
-                    document.getElementById('statusConexao').className = 'text-ap-green';
-                    document.getElementById('statusConexao').textContent = "CONECTADO ✅";
-                    // AVISA QUEM EU SOU
-                    conn.send({tipo:"cadastrar_usuario",idUnico:meuId,nomeEscolhido:meuNome,cargo:"nenhum",tipoUsuario:"cliente"});
-                });
-
-                // RECEBE MENSAGENS E AVISOS DO ADM
-                conn.on('data', (dados) => {
-                    if(dados.tipo === "mensagem") {
-                        adicionarMensagemAdmNaTela(dados.texto);
-                    }
-                    if(dados.tipo === "pagamento_aprovado") {
-                        adicionarMensagemSistema("✅ Pagamento APROVADO! Aguarde os dados da sala.");
-                        document.getElementById('statusEtapa').textContent = "Pagamento aprovado ✅";
-                        document.getElementById('statusEtapa').className = "text-center text-sm text-ap-green font-bold mt-2";
-                    }
-                    if(dados.tipo === "pagamento_recusado") {
-                        adicionarMensagemSistema("❌ Pagamento RECUSADO! Verifique o comprovante e envie novamente.");
-                        document.getElementById('statusEtapa').textContent = "Pagamento recusado ❌";
-                        document.getElementById('statusEtapa').className = "text-center text-sm text-ap-red font-bold mt-2";
-                    }
-                    if(dados.tipo === "receber_codigo") {
-                        adicionarMensagemSistema(`🔐 Sala liberada! Código: ${dados.codigo} | Senha: ${dados.senha}`);
-                        document.getElementById('codigoRecebido').textContent = dados.codigo;
-                        document.getElementById('senhaRecebida').textContent = dados.senha;
-                        document.getElementById('codigoSalaInfo').classList.remove('hidden');
-                    }
-                });
-
-                conn.on('close', () => {
-                    document.getElementById('statusConexao').textContent = "DESCONECTADO ❌ | RETORNANDO...";
-                    setTimeout(conectar, 2500);
-                });
+        function conectarGlobal() {
+            // ⚠️ CONEXÃO GLOBAL - FUNCIONA EM DADOS MÓVEIS, WI-FI, QUALQUER OPERADORA
+            const peer = new Peer({
+                host: 'peerjs-server.herokuapp.com',
+                port: 443,
+                path: '/',
+                secure: true,
+                config: {
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' }
+                    ]
+                }
             });
-            peer.on('error', () => setTimeout(conectar,2500));
+
+            peer.on('open', () => {
+                conn = peer.connect(ID_ALVO, {
+                    reliable: true,
+                    host: 'peerjs-server.herokuapp.com',
+                    port: 443,
+                    path: '/',
+                    secure: true
+                });
+
+                conn.on('open', () => {
+                    document.getElementById('statusConn').className = 'text-green-400';
+                    document.getElementById('statusConn').textContent = '✅ CONECTADO AO SISTEMA';
+                    conn.send({tipo:"cadastrar_usuario",idUnico:meuId, nomeEscolhido:meuNome, tipoUsuario:"cliente"});
+                });
+
+                // RECEBE MENSAGENS DO ADM
+                conn.on('data', (dados) => {
+                    if(dados.tipo === "mensagem") adicionarMsgAdm(dados.texto);
+                    if(dados.tipo === "codigo_recebido") {
+                        document.getElementById('codRecebido').textContent = dados.cod;
+                        document.getElementById('senRecebida').textContent = dados.sen;
+                        document.getElementById('dadosSala').classList.remove('hidden');
+                    }
+                });
+
+                conn.on('close', () => setTimeout(conectarGlobal, 3000));
+            });
+
+            peer.on('error', () => setTimeout(conectarGlobal, 3000));
         }
 
-        function definirAposta() {
-            const modo = document.getElementById('modoJogo').value;
-            const valor = document.getElementById('valorAposta').value;
-            if(!modo || !valor) return alert("Preencha modo e valor!");
-            
-            conn.send({tipo:"definir_aposta",idUsuario:meuId, modo:modo, valor:valor});
-            adicionarMensagemSistema(`📋 Aposta definida: ${modo} | R$ ${valor}`);
-            document.getElementById('statusEtapa').textContent = "Aposta salva! Envie o comprovante 📸";
-            document.getElementById('statusEtapa').className = "text-center text-sm text-ap-yellow font-bold mt-2";
+        function confirmarAposta() {
+            const modo = document.getElementById('modo').value;
+            const valor = document.getElementById('valor').value;
+            adicionarMsgSistema(`✅ Aposta: ${modo} - R$${valor}`);
         }
 
-        function enviarComprovante() {
-            const input = document.getElementById('inputImagem');
-            if(!input.files[0]) return alert("Selecione uma imagem!");
-            
+        function enviarPrint() {
+            const file = document.getElementById('imgInput').files[0];
+            if(!file) return alert("Selecione imagem!");
             const reader = new FileReader();
-            reader.onload = function(e) {
-                imagemComprovante = e.target.result;
-                conn.send({tipo:"enviar_print",idUsuario:meuId, imagem:imagemComprovante});
-                adicionarMensagemSistema("📸 Comprovante enviado para análise!");
-                document.getElementById('statusEtapa').textContent = "Comprovante em análise 🔍";
-                document.getElementById('statusEtapa').className = "text-center text-sm text-ap-orange font-bold mt-2";
+            reader.onload = e => {
+                conn.send({tipo:"enviar_print",idUsuario:meuId,img:e.target.result});
+                adicionarMsgSistema("📸 Comprovante enviado!");
             };
-            reader.readAsDataURL(input.files[0]);
+            reader.readAsDataURL(file);
         }
 
-        // FUNÇÕES DE INTERFACE
-        function adicionarMensagemClienteNaTela(texto) {
-            chatCliente.innerHTML += `<div class="mensagem-cliente flex gap-2 justify-end">
-                <div class="bg-gradient-to-r from-ap-orange to-ap-primary rounded-lg p-3 rounded-tr-none max-w-[85%] text-right"><b>Você</b><br>${texto}</div>
-                <div class="w-9 h-9 rounded-xl bg-ap-orange flex items-center justify-center mt-1"><i class="fa fa-user"></i></div>
-            </div>`;
-            chatCliente.scrollTop = chatCliente.scrollHeight;
-        }
-        function adicionarMensagemAdmNaTela(texto) {
-            chatCliente.innerHTML += `<div class="mensagem-adm flex gap-2">
-                <div class="w-9 h-9 rounded-xl bg-gray-700 flex items-center justify-center mt-1"><i class="fa fa-shield"></i></div>
-                <div class="bg-black/60 rounded-lg p-3 rounded-tl-none max-w-[85%] border-l-2 border-ap-red"><b>Administrador</b><br>${texto}</div>
-            </div>`;
-            chatCliente.scrollTop = chatCliente.scrollHeight;
-        }
-        function adicionarMensagemSistema(texto) {
-            chatCliente.innerHTML += `<div class="text-center text-ap-yellow text-sm py-1">⚡ ${texto}</div>`;
-            chatCliente.scrollTop = chatCliente.scrollHeight;
-        }
-
-        // ENVIAR MENSAGEM
-        document.getElementById('btnEnviarMsgCliente').addEventListener('click', () => {
-            const txt = document.getElementById('mensagemClienteInput').value.trim();
+        function enviarMsg() {
+            const txt = document.getElementById('msgInput').value.trim();
             if(!txt) return;
-            conn.send({tipo:"enviar_mensagem",idUsuario:meuId, texto:txt});
-            adicionarMensagemClienteNaTela(txt);
-            document.getElementById('mensagemClienteInput').value = "";
-        });
+            conn.send({tipo:"enviar_mensagem",idUsuario:meuId,texto:txt});
+            adicionarMsgEu(txt);
+            document.getElementById('msgInput').value = "";
+        }
+
+        function adicionarMsgEu(txt) {
+            const el = document.getElementById('chat');
+            el.innerHTML += `<div class="text-sm py-1 text-orange-300 text-right"><b>Você:</b> ${txt}</div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+        function adicionarMsgAdm(txt) {
+            const el = document.getElementById('chat');
+            el.innerHTML += `<div class="text-sm py-1 text-red-400"><b>ADM:</b> ${txt}</div>`;
+            el.scrollTop = el.scrollHeight;
+        }
+        function adicionarMsgSistema(txt) {
+            const el = document.getElementById('chat');
+            el.innerHTML += `<div class="text-sm py-1 text-yellow-400 text-center">⚡ ${txt}</div>`;
+            el.scrollTop = el.scrollHeight;
+        }
     </script>
 </body>
 </html>
